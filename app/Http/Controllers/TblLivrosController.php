@@ -7,7 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
-use App\Models\tb_livros;
+use App\Models\tbl_livros;
 
 class TblLivrosController extends Controller
 {   
@@ -15,7 +15,7 @@ class TblLivrosController extends Controller
     //Crud -> Read(leitura) Select/aVisualizar
     public function index(){
 
-        $regBook = tb_livros::All();
+        $regBook = tbl_livros::All();
         $contador = $regBook->count();
 
         return "Livros: ".$contador.$regBook.Response()->json([],Response::HTTP_NO_CONTENT);
@@ -25,12 +25,12 @@ class TblLivrosController extends Controller
     //Crud -> Read(leitura) Select/aVisualizar
     // A função show busca a id e retorna se o livro foram localizados
     public function show(string $id){ 
-        $regBook = tb_livros::find($id);
+        $regBook = tbl_livros::find($id);
 
         if($regBook){
             return "Livros Localizados ".$regBook.Response()->json([],Response::HTTP_NO_CONTENT);
         }else{
-            return "Livros não localizados: ".Response()->json([],Response::HTTP_NO_CONTENT);
+            return "Livros não localizados: ".$regBook.Response()->json([],Response::HTTP_NO_CONTENT);
         }
     }
 
@@ -39,23 +39,65 @@ class TblLivrosController extends Controller
     public function store(Request $request){
         $regBook = $request->All();
 
-        $regVeri = Validator::make($regBook,[
+        $regVerifq = Validator::make($regBook,[
             "nomeLivro"=>'required',
             "generoLivro"=>'required',
             "anoLivro"=>'required'
         ]);
+        if ($regVerifq->fails()) {
+            return 'Registros Invalidos: '.Response()->json([],Response::HTTP_NO_CONTENT);
+        }
+
+        $regBookCad = tbl_livros::create($regBook);
+
+        if ($regBookCad) {
+            return 'Livros Cadastrados: '.Response()->json([],Response::HTTP_NO_CONTENT);
+        }else {
+            return 'Livros não Cadastrados: '.Response()->json([],Response::HTTP_NO_CONTENT);
+        }
     }
 
     //alterar registros
     //Crud -> update(alterar)
-    public function update(){
+    public function update(Request $request,string $id){
+        $regBook = $request->All();
+
+        $regVerifq = Validator::make($regBook,[
+            "nomeLivro"=>'required',
+            "generoLivro"=>'required',
+            "anoLivro"=>'required'
+        ]);
+
+        if ($regVerifq->fails()) {
+            return 'registros não atualizados: '.Response()->json([],Response::HTTP_NO_CONTENT);
+        }
+        
+        $regBook = tbl_livros::Find($id);
+        $regBookBanco->nomeLivro = $regBook['nomeLivro'];
+        $regBookBanco->generoLivro = $regBook['generoLivro'];
+        $regBookBanco->anoLivro = $regBook['anoLivro'];
+
+        $retorno = $regBookBanco->save();
+
+        if ($retorno) {
+            return "livro atulizado com sucesso.".Response()->json([],Response::HTTP_NO_CONTENT);
+        } else {
+            return "Atenção... Erro: Livro não atualizado.".Response()->json([],Response::HTTP_NO_CONTENT);
+        }
+        
 
     }
 
     //deletar os registros
     //Crud -> delete(apagar)
-    public function destroy(){
+    public function destroy(string $id){
 
+        $regBook = tbl_livros::Find($id);
+
+        if ($regBook->delete()) {
+        return"O livro foi deletado com sucesso".Response()->json([],Response::HTTP_NO_CONTENT);
+    }
+        return "Algo deu errado: Livro não deletado".Response()->json([],Response::HTTP_NO_CONTENT);
     }
 
     //crud
